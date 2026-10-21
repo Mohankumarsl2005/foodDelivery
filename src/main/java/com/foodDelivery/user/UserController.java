@@ -1,55 +1,47 @@
+
 package com.foodDelivery.user;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+
     private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    // Register a new user
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(
-            @RequestBody User user) {
+    public ResponseEntity<UserResponse> registerUser(
+            @Valid @RequestBody UserRegistrationRequest request) {
 
-        User savedUser = userService.registerUser(user);
+        UserResponse response = userService.registerUser(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(savedUser);
+                .body(response);
     }
 
-    // Get user by ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(
+    public ResponseEntity<UserResponse> getUserById(
             @PathVariable Long id) {
 
-        Optional<User> user = userService.getUserById(id);
-
-        return user.map(ResponseEntity::ok)
-                .orElseGet(() ->
-                        ResponseEntity.notFound().build());
+        return userService.getUserById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Get user by email
     @GetMapping("/email")
-    public ResponseEntity<User> getUserByEmail(
+    public ResponseEntity<UserResponse> getUserByEmail(
             @RequestParam String email) {
 
-        Optional<User> user =
-                userService.getUserByEmail(email);
-
-        return user.map(ResponseEntity::ok)
-                .orElseGet(() ->
-                        ResponseEntity.notFound().build());
+        return userService.getUserByEmail(email)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
-
 }

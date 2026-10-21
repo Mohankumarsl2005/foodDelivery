@@ -1,7 +1,9 @@
+
 package com.foodDelivery.order;
+
+
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-
 
 @Entity
 @Table(name = "order_items")
@@ -11,28 +13,23 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @Column(nullable = false)
-    private Long foodItemId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "food_item_id", nullable = false)
+    private FoodItem foodItem;
 
     @Column(nullable = false)
     private Integer quantity;
 
+    // Snapshot of the unit price charged when the order was placed.
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    public OrderItem() {
-    }
-
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Order getOrder() {
@@ -43,12 +40,12 @@ public class OrderItem {
         this.order = order;
     }
 
-    public Long getFoodItemId() {
-        return foodItemId;
+    public FoodItem getFoodItem() {
+        return foodItem;
     }
 
-    public void setFoodItemId(Long foodItemId) {
-        this.foodItemId = foodItemId;
+    public void setFoodItem(FoodItem foodItem) {
+        this.foodItem = foodItem;
     }
 
     public Integer getQuantity() {
