@@ -1,5 +1,4 @@
-
-package com.foodDelivery.restaurant;
+package com.foodDelivery.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,15 +31,21 @@ public class SecurityConfig {
                                 "/api/restaurants/**"
                         ).permitAll()
 
-                        // Only restaurant owners and admins can modify restaurants.
-                        .requestMatchers("/api/restaurants/**")
-                        .hasAnyRole("RESTAURANT_OWNER", "ADMIN")
+                        // Only owners and admins can modify restaurants.
+                        .requestMatchers(
+                                "/api/restaurants/**"
+                        ).hasAnyRole(
+                                "RESTAURANT_OWNER",
+                                "ADMIN"
+                        )
 
                         // Only admins can access user-directory endpoints.
-                        .requestMatchers("/api/users/**")
-                        .hasRole("ADMIN")
+                        .requestMatchers(
+                                "/api/users/**"
+                        ).hasRole("ADMIN")
 
-                        // Customers, delivery partners, and admins can access orders.
+                        // Role restriction only; ownership must also be
+                        // checked in the service layer.
                         .requestMatchers(
                                 "/api/orders/**",
                                 "/api/order-items/**"
@@ -50,7 +55,7 @@ public class SecurityConfig {
                                 "ADMIN"
                         )
 
-                        // Everything else requires authentication.
+                        // All other endpoints require authentication.
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());

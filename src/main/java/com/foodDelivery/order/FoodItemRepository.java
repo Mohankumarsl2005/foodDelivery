@@ -1,7 +1,8 @@
 package com.foodDelivery.order;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface FoodItemRepository
-        extends JpaRepository<FoodItem, Long> {
+@Repository
+public interface FoodItemRepository extends JpaRepository<FoodItem, Long> {
 }

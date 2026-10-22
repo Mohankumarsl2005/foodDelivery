@@ -3,75 +3,140 @@ package com.foodDelivery.restaurant;
 
 import java.util.List;
 
+import com.foodDelivery.user.User;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
 
-    public RestaurantService(RestaurantRepository restaurantRepository) {
+    public RestaurantService(
+            RestaurantRepository restaurantRepository) {
         this.restaurantRepository = restaurantRepository;
     }
 
     @Transactional
-    public Restaurant createRestaurant(Restaurant restaurant) {
-        if (restaurant.getName() == null
-                || restaurant.getName().isBlank()) {
-            throw new IllegalArgumentException(
-                    "Restaurant name is required");
+    public RestaurantResponse createRestaurant(
+            RestaurantRequest request,
+            User authenticatedUser) {
+
+        if (request == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Restaurant request is required");
         }
 
-        // A new restaurant starts closed.
+        validateName(request.getName());
+        checkAuthenticatedUser(authenticatedUser);
+
+        Restaurant restaurant = new Restaurant();
+        restaurant.setName(request.getName().trim());
+        restaurant.setDescription(request.getDescription());
+        restaurant.setAddress(request.getAddress());
+        restaurant.setPhoneNumber(request.getPhoneNumber());
+        restaurant.setCuisineType(request.getCuisineType());
+
+        // Assign the owner from the authenticated user.
+        restaurant.setOwner(authenticatedUser);
+
+        // New restaurants start closed.
         restaurant.setOpen(false);
 
-        return restaurantRepository.save(restaurant);
+        Restaurant saved = restaurantRepository.save(restaurant);
+        return RestaurantResponse.from(saved);
     }
 
     @Transactional(readOnly = true)
-    public List<Restaurant> getAllRestaurants() {
-        return restaurantRepository.findAll();
+    public List<RestaurantResponse> getAllRestaurants() {
+        return restaurantRepository.findAll()
+                .stream()
+                .map(RestaurantResponse::from)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public Restaurant getRestaurantById(Long id) {
-        return restaurantRepository.findById(id)
-                .orElseThrow(() ->
-                        new RestaurantNotFoundException(id));
+    public RestaurantResponse getRestaurantById(Long id) {
+        Restaurant restaurant = getRestaurantEntityById(id);
+        return RestaurantResponse.from(restaurant);
     }
 
     @Transactional
-    public Restaurant updateRestaurant(
-            Long id, Restaurant updatedRestaurant) {
+    public RestaurantResponse updateRestaurant(
+            Long id,
+            RestaurantRequest request,
+            Long currentUserId) {
 
-        Restaurant existingRestaurant = getRestaurantById(id);
-
-        if (updatedRestaurant.getName() == null
-                || updatedRestaurant.getName().isBlank()) {
-            throw new IllegalArgumentException(
-                    "Restaurant name is required");
+        if (request == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Restaurant request is required");
         }
 
-        existingRestaurant.setName(updatedRestaurant.getName());
-        existingRestaurant.setDescription(
-                updatedRestaurant.getDescription());
-        existingRestaurant.setAddress(updatedRestaurant.getAddress());
-        existingRestaurant.setPhoneNumber(
-                updatedRestaurant.getPhoneNumber());
-        existingRestaurant.setCuisineType(
-                updatedRestaurant.getCuisineType());
+        validateName(request.getName());
 
-        // Do not change the owner through this update method.
-        // Add a separate, authorized operation if ownership changes
-        // are needed in the future.
+        Restaurant existing = getRestaurantEntityById(id);
+        checkOwnership(existing, currentUserId);
 
-        return restaurantRepository.save(existingRestaurant);
+        existing.setName(request.getName().trim());
+        existing.setDescription(request.getDescription());
+        existing.setAddress(request.getAddress());
+        existing.setPhoneNumber(request.getPhoneNumber());
+        existing.setCuisineType(request.getCuisineType());
+
+        // Owner and opening status cannot be changed here.
+        Restaurant saved = restaurantRepository.save(existing);
+        return RestaurantResponse.from(saved);
     }
 
     @Transactional
-    public void deleteRestaurant(Long id) {
-        Restaurant restaurant = getRestaurantById(id);
+    public void deleteRestaurant(Long id, Long currentUserId) {
+        Restaurant restaurant = getRestaurantEntityById(id);
+        checkOwnership(restaurant, currentUserId);
         restaurantRepository.delete(restaurant);
+    }
+
+    private Restaurant getRestaurantEntityById(Long id) {
+        if (id == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Restaurant ID is required");
+        }
+
+        return restaurantRepository.findById(id)
+                .orElseThrow(() -> new RestaurantNotFoundException(id));
+    }
+
+    private void validateName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Restaurant name is required");
+        }
+    }
+
+    private void checkAuthenticatedUser(User user) {
+        if (user == null || user.getId() == null) {
+            throw new AccessDeniedException(
+                    "Authentication is required");
+        }
+    }
+
+    private void checkOwnership(
+            Restaurant restaurant,
+            Long currentUserId) {
+
+        if (currentUserId == null
+                || restaurant.getOwner() == null
+                || restaurant.getOwner().getId() == null
+                || !currentUserId.equals(
+                restaurant.getOwner().getId())) {
+            throw new AccessDeniedException(
+                    "You do not own this restaurant");
+        }
     }
 }

@@ -1,8 +1,12 @@
 
 package com.foodDelivery.order;
 
-import org.springframework.web.bind.annotation.*;
 import java.util.List;
+
+import jakarta.validation.Valid;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/order-items")
@@ -14,27 +18,46 @@ public class OrderItemController {
         this.orderItemService = orderItemService;
     }
 
-    // Get all order items
     @GetMapping
-    public List<OrderItem> getAllOrderItems() {
-        return orderItemService.getAllOrderItems();
+    public List<OrderItemResponse> getAllOrderItems(
+            Authentication authentication) {
+        return orderItemService.getAllOrderItemsForUser(
+                getAuthenticatedEmail(authentication));
     }
 
-    // Get order item by ID
     @GetMapping("/{id}")
-    public OrderItem getOrderItemById(@PathVariable Long id) {
-        return orderItemService.getOrderItemById(id);
+    public OrderItemResponse getOrderItemById(
+            @PathVariable Long id,
+            Authentication authentication) {
+        return orderItemService.getOrderItemForUser(
+                id, getAuthenticatedEmail(authentication));
     }
 
-    // Create an order item
     @PostMapping
-    public OrderItem createOrderItem(@RequestBody OrderItem orderItem) {
-        return orderItemService.saveOrderItem(orderItem);
+    public OrderItemResponse createOrderItem(
+            @Valid @RequestBody OrderItemRequest request,
+            Authentication authentication) {
+        return orderItemService.createOrderItem(
+                request, getAuthenticatedEmail(authentication));
     }
 
-    // Delete an order item
     @DeleteMapping("/{id}")
-    public void deleteOrderItem(@PathVariable Long id) {
-        orderItemService.deleteOrderItem(id);
+    public void deleteOrderItem(
+            @PathVariable Long id,
+            Authentication authentication) {
+        orderItemService.deleteOrderItemForUser(
+                id, getAuthenticatedEmail(authentication));
+    }
+
+    private String getAuthenticatedEmail(Authentication authentication) {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getName() == null
+                || authentication.getName().isBlank()
+                || "anonymousUser".equals(authentication.getName())) {
+            throw new AccessDeniedException("Authentication is required");
+        }
+
+        return authentication.getName();
     }
 }

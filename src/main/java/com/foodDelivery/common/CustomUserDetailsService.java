@@ -1,5 +1,9 @@
-package com.foodDelivery.user;
+package com.foodDelivery.common;
 
+import java.util.Locale;
+
+import com.foodDelivery.user.User;
+import com.foodDelivery.user.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,13 +24,21 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {
 
-        User user =
-        userRepository.findByEmail(email.trim().toLowerCase())
+        if (email == null || email.isBlank()) {
+            throw new UsernameNotFoundException("Email is required");
+        }
+
+        String normalizedEmail =
+                email.trim().toLowerCase(Locale.ROOT);
+
+        User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException(
-                                "User not found"
-                        )
-                );
+                        new UsernameNotFoundException("User not found"));
+
+        if (user.getRole() == null) {
+            throw new UsernameNotFoundException(
+                    "User role is not configured");
+        }
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
