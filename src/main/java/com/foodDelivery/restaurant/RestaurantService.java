@@ -33,6 +33,7 @@ public class RestaurantService {
 
         validateName(request.getName());
         checkAuthenticatedUser(authenticatedUser);
+        checkCanManageRestaurants(authenticatedUser);
 
         Restaurant restaurant = new Restaurant();
         restaurant.setName(request.getName().trim());
@@ -69,7 +70,7 @@ public class RestaurantService {
     public RestaurantResponse updateRestaurant(
             Long id,
             RestaurantRequest request,
-            Long currentUserId) {
+            User currentUser) {
 
         if (request == null) {
             throw new ResponseStatusException(
@@ -78,9 +79,11 @@ public class RestaurantService {
         }
 
         validateName(request.getName());
+        checkAuthenticatedUser(currentUser);
+        checkCanManageRestaurants(currentUser);
 
         Restaurant existing = getRestaurantEntityById(id);
-        checkOwnership(existing, currentUserId);
+        checkOwnershipOrAdmin(existing, currentUser);
 
         existing.setName(request.getName().trim());
         existing.setDescription(request.getDescription());
@@ -94,9 +97,12 @@ public class RestaurantService {
     }
 
     @Transactional
-    public void deleteRestaurant(Long id, Long currentUserId) {
+    public void deleteRestaurant(Long id, User currentUser) {
+        checkAuthenticatedUser(currentUser);
+        checkCanManageRestaurants(currentUser);
+
         Restaurant restaurant = getRestaurantEntityById(id);
-        checkOwnership(restaurant, currentUserId);
+        checkOwnershipOrAdmin(restaurant, currentUser);
         restaurantRepository.delete(restaurant);
     }
 
@@ -126,14 +132,26 @@ public class RestaurantService {
         }
     }
 
-    private void checkOwnership(
-            Restaurant restaurant,
-            Long currentUserId) {
+    private void checkCanManageRestaurants(User user) {
+        User.Role role = user.getRole();
+        if (role != User.Role.RESTAURANT_OWNER
+                && role != User.Role.ADMIN) {
+            throw new AccessDeniedException(
+                    "Only restaurant owners or admins can manage restaurants");
+        }
+    }
 
-        if (currentUserId == null
-                || restaurant.getOwner() == null
+    private void checkOwnershipOrAdmin(
+            Restaurant restaurant,
+            User currentUser) {
+
+        if (currentUser.getRole() == User.Role.ADMIN) {
+            return;
+        }
+
+        if (restaurant.getOwner() == null
                 || restaurant.getOwner().getId() == null
-                || !currentUserId.equals(
+                || !currentUser.getId().equals(
                 restaurant.getOwner().getId())) {
             throw new AccessDeniedException(
                     "You do not own this restaurant");

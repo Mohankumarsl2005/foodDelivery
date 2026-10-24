@@ -1,4 +1,4 @@
-package com.foodDelivery.order;
+package com.foodDelivery.foodItem;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

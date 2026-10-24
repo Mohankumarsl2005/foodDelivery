@@ -1,4 +1,4 @@
-package com.foodDelivery.order;
+package com.foodDelivery.foodItem;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;

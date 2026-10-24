@@ -2,6 +2,7 @@ package com.foodDelivery.payment;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,31 +17,30 @@ public class PaymentController {
     @PostMapping("/order/{orderId}")
     public ResponseEntity<Payment> createPayment(
             @PathVariable Long orderId,
-            @RequestParam PaymentMethod paymentMethod) {
+            @RequestParam PaymentMethod paymentMethod,
+            Authentication authentication) {
 
         Payment payment = paymentService.createPayment(
-                orderId, paymentMethod);
+                orderId, paymentMethod, authentication.getName());
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(payment);
+        return ResponseEntity.status(HttpStatus.CREATED).body(payment);
     }
 
-    // Get payment by payment ID
     @GetMapping("/{paymentId}")
     public ResponseEntity<Payment> getPaymentById(
-            @PathVariable Long paymentId) {
+            @PathVariable Long paymentId,
+            Authentication authentication) {
 
         return ResponseEntity.ok(
-                paymentService.getPaymentById(paymentId));
+                paymentService.getPaymentById(paymentId, authentication.getName()));
     }
 
-    // Get payment by order ID
     @GetMapping("/order/{orderId}")
     public ResponseEntity<Payment> getPaymentByOrderId(
-            @PathVariable Long orderId) {
+            @PathVariable Long orderId,
+            Authentication authentication) {
 
         return ResponseEntity.ok(
-                paymentService.getPaymentByOrderId(orderId));
+                paymentService.getPaymentByOrderId(orderId, authentication.getName()));
     }
 }

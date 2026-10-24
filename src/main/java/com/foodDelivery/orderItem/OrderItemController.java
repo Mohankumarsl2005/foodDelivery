@@ -1,8 +1,9 @@
 
-package com.foodDelivery.order;
+package com.foodDelivery.orderItem;
 
 import java.util.List;
 
+import com.foodDelivery.order.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -13,9 +14,13 @@ import org.springframework.web.bind.annotation.*;
 public class OrderItemController {
 
     private final OrderItemService orderItemService;
+    private final OrderService orderService;
 
-    public OrderItemController(OrderItemService orderItemService) {
+    public OrderItemController(
+            OrderItemService orderItemService,
+            OrderService orderService) {
         this.orderItemService = orderItemService;
+        this.orderService = orderService;
     }
 
     @GetMapping
@@ -37,7 +42,7 @@ public class OrderItemController {
     public OrderItemResponse createOrderItem(
             @Valid @RequestBody OrderItemRequest request,
             Authentication authentication) {
-        return orderItemService.createOrderItem(
+        return orderService.addOrderItem(
                 request, getAuthenticatedEmail(authentication));
     }
 
@@ -45,7 +50,7 @@ public class OrderItemController {
     public void deleteOrderItem(
             @PathVariable Long id,
             Authentication authentication) {
-        orderItemService.deleteOrderItemForUser(
+        orderService.removeOrderItem(
                 id, getAuthenticatedEmail(authentication));
     }
 

@@ -60,7 +60,7 @@ public class RestaurantController {
         User currentUser = getAuthenticatedUser(authentication);
 
         return restaurantService.updateRestaurant(
-                id, request, currentUser.getId());
+                id, request, currentUser);
     }
 
     // Delete restaurant
@@ -72,7 +72,7 @@ public class RestaurantController {
         User currentUser = getAuthenticatedUser(authentication);
 
         restaurantService.deleteRestaurant(
-                id, currentUser.getId());
+                id, currentUser);
 
         return "Restaurant deleted successfully";
     }

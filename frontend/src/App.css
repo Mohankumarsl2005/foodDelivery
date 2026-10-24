@@ -1,0 +1,282 @@
+
+#root {
+  min-height: 100vh;
+}
+
+.app {
+  min-height: 100vh;
+  color: #24251f;
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 7%;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #24251f;
+  font-size: 23px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.brand > span:last-child,
+.hero h1 span {
+  color: #e65b35;
+}
+
+.brand-icon {
+  font-size: 27px;
+}
+
+.location {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.location div {
+  display: grid;
+  gap: 3px;
+}
+
+.location small {
+  color: #777;
+}
+
+.cart-button,
+.add-button {
+  border: 0;
+  border-radius: 10px;
+  background: #e65b35;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cart-button {
+  padding: 12px 17px;
+}
+
+.hero {
+  padding: 76px 7%;
+  background:
+    linear-gradient(90deg, #fff2e8 0%, #fff2e8ee 48%, #fff2e866 100%),
+    url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600')
+      center / cover;
+}
+
+.hero-content {
+  max-width: 590px;
+}
+
+.eyebrow {
+  color: #e65b35;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.hero h1 {
+  margin: 15px 0;
+  font-size: clamp(38px, 5vw, 58px);
+  line-height: 1.12;
+}
+
+.hero p {
+  color: #666;
+  line-height: 1.7;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 470px;
+  margin-top: 25px;
+  padding: 15px;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px #0000000a;
+}
+
+.search-box input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  font: inherit;
+}
+
+.restaurants-section {
+  padding: 55px 7%;
+}
+
+.section-heading,
+.restaurant-title,
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-heading h2 {
+  margin: 9px 0 0;
+  font-size: 30px;
+}
+
+.restaurant-count,
+.restaurant-info p,
+.card-footer > span {
+  color: #777;
+  font-size: 14px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 25px 0;
+}
+
+.filter-chip {
+  padding: 10px 18px;
+  border: 1px solid #e8e8e8;
+  border-radius: 24px;
+  background: white;
+  cursor: pointer;
+}
+
+.filter-chip.active {
+  border-color: #e65b35;
+  background: #e65b35;
+  color: white;
+}
+
+.restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.restaurant-card {
+  overflow: hidden;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  background: white;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px #0000000d;
+}
+
+.restaurant-image {
+  position: relative;
+  height: 210px;
+}
+
+.restaurant-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.offer {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  background: white;
+  color: #d64e2b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.restaurant-info {
+  padding: 17px;
+}
+
+.restaurant-title h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.rating {
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: #e9f7e9;
+  color: #247a35;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.restaurant-info > p {
+  margin: 9px 0 18px;
+}
+
+.add-button {
+  padding: 9px 13px;
+}
+
+.empty-state {
+  padding: 30px 0;
+  color: #777;
+  text-align: center;
+}
+
+footer {
+  padding: 22px;
+  background: #fff7f2;
+  color: #777;
+  text-align: center;
+  font-size: 13px;
+}
+
+@media (max-width: 850px) {
+  .restaurant-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero {
+    padding-top: 55px;
+    padding-bottom: 55px;
+  }
+}
+
+@media (max-width: 560px) {
+  .navbar {
+    flex-wrap: wrap;
+    padding: 15px 5%;
+  }
+
+  .location {
+    order: 3;
+    width: 100%;
+  }
+
+  .hero,
+  .restaurants-section {
+    padding-right: 5%;
+    padding-left: 5%;
+  }
+
+  .restaurant-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading h2 {
+    font-size: 24px;
+  }
+}

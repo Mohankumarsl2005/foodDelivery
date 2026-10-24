@@ -1,8 +1,6 @@
 
 package com.foodDelivery.order;
 
-import com.foodDelivery.dto.CreateOrderRequest;
-import com.foodDelivery.dto.OrderResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
