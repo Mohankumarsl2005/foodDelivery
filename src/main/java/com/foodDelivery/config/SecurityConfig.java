@@ -18,6 +18,7 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Allow requests from the React/Vite frontend.
@@ -33,8 +34,6 @@ public class SecurityConfig {
                 List.of("Authorization", "Content-Type", "Accept")
         );
 
-        // Needed if your frontend later uses cookies or credentials.
-        // Do not enable this unless required by your authentication design.
         configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source =
@@ -52,7 +51,11 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults())
 
-                // Keep CSRF protection enabled.
+                // Exclude REST API endpoints from CSRF protection.
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**")
+                )
+
                 .authorizeHttpRequests(auth -> auth
 
                         // Anyone can register a customer.
@@ -100,6 +103,7 @@ public class SecurityConfig {
                         // Everything else requires authentication.
                         .anyRequest().authenticated()
                 )
+
                 .httpBasic(Customizer.withDefaults());
 
         return http.build();

@@ -1,9 +1,11 @@
 
 package com.foodDelivery.user;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -22,11 +24,24 @@ public class UserService {
 
     @Transactional
     public UserResponse registerUser(UserRegistrationRequest request) {
+        return createUser(request, User.Role.CUSTOMER);
+    }
+
+    @Transactional
+    public UserResponse createRestaurantOwner(
+            UserRegistrationRequest request) {
+        return createUser(request, User.Role.RESTAURANT_OWNER);
+    }
+
+    private UserResponse createUser(
+            UserRegistrationRequest request,
+            User.Role role) {
+
         String email = request.email().trim().toLowerCase();
 
         if (userRepository.existsByEmail(email)) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.CONFLICT,
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
                     "Email is already registered"
             );
         }
@@ -39,11 +54,12 @@ public class UserService {
         );
         user.setPhoneNumber(request.phoneNumber());
 
-        // Never accept role or enabled from the registration request.
-        user.setRole(User.Role.CUSTOMER);
+        // The role is assigned by the service, never by the request.
+        user.setRole(role);
         user.setEnabled(true);
 
         User savedUser = userRepository.save(user);
+
         return UserResponse.from(savedUser);
     }
 

@@ -16,11 +16,25 @@ public class UserController {
         this.userService = userService;
     }
 
+    // Public registration: creates CUSTOMER accounts
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(
             @Valid @RequestBody UserRegistrationRequest request) {
 
         UserResponse response = userService.registerUser(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+    // ADMIN creates RESTAURANT_OWNER accounts
+    @PostMapping("/restaurant-owner")
+    public ResponseEntity<UserResponse> createRestaurantOwner(
+            @Valid @RequestBody UserRegistrationRequest request) {
+
+        UserResponse response =
+                userService.createRestaurantOwner(request);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

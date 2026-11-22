@@ -4,11 +4,13 @@ package com.foodDelivery.order;
 import com.foodDelivery.dto.OrderItemResponse;
 import com.foodDelivery.foodItem.FoodItem;
 import com.foodDelivery.foodItem.FoodItemRepository;
+import com.foodDelivery.order.event.OrderCreatedEvent;
 import com.foodDelivery.orderItem.OrderItem;
 import com.foodDelivery.orderItem.OrderItemRepository;
 import com.foodDelivery.user.User;
 import com.foodDelivery.user.UserRepository;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,17 +29,20 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final FoodItemRepository foodItemRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public OrderService(
             OrderRepository orderRepository,
             OrderItemRepository orderItemRepository,
             FoodItemRepository foodItemRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            ApplicationEventPublisher eventPublisher) {
 
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
         this.foodItemRepository = foodItemRepository;
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -74,8 +79,6 @@ public class OrderService {
         List<OrderItemResponse> responseItems = new ArrayList<>();
 
         BigDecimal total = BigDecimal.ZERO;
-
-        // Local to this order creation, not a service-level field.
         Long restaurantId = null;
 
         for (OrderItemRequest requested : request.items()) {
@@ -83,8 +86,10 @@ public class OrderService {
             if (requested == null
                     || requested.foodItemId() == null
                     || requested.foodItemId() <= 0
+                    || requested.quantity() == null
                     || requested.quantity() <= 0
                     || requested.quantity() > 100) {
+
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         "Invalid food item ID or quantity");
@@ -118,7 +123,6 @@ public class OrderService {
 
             Long foodRestaurantId = food.getRestaurant().getId();
 
-            // All items in one order must belong to one restaurant.
             if (restaurantId == null) {
                 restaurantId = foodRestaurantId;
             } else if (!restaurantId.equals(foodRestaurantId)) {
@@ -144,8 +148,6 @@ public class OrderService {
             OrderItem item = new OrderItem();
             item.setFoodItem(food);
             item.setQuantity(requested.quantity());
-
-            // Preserve the price at the time the order is created.
             item.setPrice(unitPrice);
 
             orderItems.add(item);
@@ -172,6 +174,27 @@ public class OrderService {
 
         orderItemRepository.saveAll(orderItems);
 
+        // Publish application event.
+        // Kafka listener processes it after transaction commit.
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                savedOrder.getId(),
+                customer.getId(),
+                restaurantId,
+                savedOrder.getTotalAmount(),
+                savedOrder.getStatus().name(),
+                savedOrder.getCreatedAt(),
+                responseItems.stream()
+                        .map(item -> new OrderCreatedEvent.Item(
+                                item.foodItemId(),
+                                item.foodItemName(),
+                                item.quantity(),
+                                item.unitPrice()
+                        ))
+                        .toList()
+        );
+
+        eventPublisher.publishEvent(event);
+
         return new OrderResponse(
                 savedOrder.getId(),
                 customer.getId(),
@@ -196,8 +219,10 @@ public class OrderService {
                 || request.orderId() <= 0
                 || request.foodItemId() == null
                 || request.foodItemId() <= 0
+                || request.quantity() == null
                 || request.quantity() <= 0
                 || request.quantity() > 100) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Invalid order item request");
@@ -236,8 +261,8 @@ public class OrderService {
 
         Long newRestaurantId = foodItem.getRestaurant().getId();
 
-        // Check every existing item, not just the first one.
         for (OrderItem existingItem : existingItems) {
+
             Long existingRestaurantId = existingItem
                     .getFoodItem()
                     .getRestaurant()
@@ -256,6 +281,7 @@ public class OrderService {
                 .findByOrder_IdAndFoodItem_Id(
                         order.getId(), foodItem.getId())
                 .isPresent()) {
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "This food item is already in the order");
@@ -317,6 +343,7 @@ public class OrderService {
     }
 
     private void ensureOrderIsEditable(Order order) {
+
         if (order.getStatus() != OrderStatus.PLACED) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
