@@ -1,10 +1,10 @@
-package com.foodDelivery.order.event;
+package com.foodDelivery.event;
 
-import com.foodDelivery.event.OrderCreatedEvent;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.event.TransactionPhase;
+
 
 @Component
 public class OrderEventListener {
