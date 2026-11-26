@@ -13,6 +13,7 @@ public record RestaurantResponse(
         boolean open,
         LocalDateTime createdAt
 ) {
+
     public static RestaurantResponse from(Restaurant restaurant) {
         return new RestaurantResponse(
                 restaurant.getId(),

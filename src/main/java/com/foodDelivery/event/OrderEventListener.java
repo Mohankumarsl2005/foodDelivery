@@ -1,14 +1,13 @@
+
 package com.foodDelivery.event;
 
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
-
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 public class OrderEventListener {
-
 
     private final KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
 
@@ -17,9 +16,7 @@ public class OrderEventListener {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    @TransactionalEventListener(
-            phase = TransactionPhase.AFTER_COMMIT
-    )
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleOrderCreated(OrderCreatedEvent event) {
 
         kafkaTemplate.send(
